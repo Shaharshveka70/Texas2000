@@ -1,0 +1,21 @@
+{
+  "name": "texas2000",
+  "version": "0.1.0",
+  "description": "Scan-to-pay: customers pay the bill and leave a tip from their phone by scanning the QR on the table",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "express": "^4.22.3",
+    "qrcode": "^1.5.4"
+  }
+}

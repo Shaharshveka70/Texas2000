@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>תשלום חשבון</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <p class="sub" id="restaurant" style="margin:0"></p>
+  <h1 id="table">טוען…</h1>
+  <p class="sub" id="status"></p>
+
+  <section id="billView" class="hidden">
+    <div class="card">
+      <h2>החשבון שלכם</h2>
+      <div id="items"></div>
+      <div class="row total"><span>סה״כ</span><span class="money" id="total"></span></div>
+      <div class="row muted hidden" id="paidRow"><span>כבר שולם</span><span class="money" id="paid"></span></div>
+      <div class="row total hidden" id="remainingRow"><span>נותר לתשלום</span><span class="money" id="remaining"></span></div>
+    </div>
+
+    <div class="card">
+      <h2>כמה אתם משלמים?</h2>
+      <div class="chips" id="splitChips">
+        <button class="chip" data-split="all" aria-pressed="true">את כל היתרה</button>
+        <button class="chip" data-split="equal" aria-pressed="false">חלוקה שווה</button>
+        <button class="chip" data-split="custom" aria-pressed="false">סכום אחר</button>
+      </div>
+      <div id="equalBox" class="hidden">
+        <label for="people">מספר סועדים</label>
+        <input id="people" type="number" min="2" max="20" value="2" inputmode="numeric">
+      </div>
+      <div id="customBox" class="hidden">
+        <label for="customAmount">סכום (₪)</label>
+        <input id="customAmount" type="number" min="1" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>טיפ לצוות</h2>
+      <div class="chips" id="tipChips">
+        <button class="chip" data-tip="0" aria-pressed="false">בלי</button>
+        <button class="chip" data-tip="10" aria-pressed="false">10%</button>
+        <button class="chip" data-tip="12" aria-pressed="true">12%</button>
+        <button class="chip" data-tip="15" aria-pressed="false">15%</button>
+        <button class="chip" data-tip="custom" aria-pressed="false">אחר</button>
+      </div>
+      <div id="customTipBox" class="hidden">
+        <label for="customTip">טיפ (₪)</label>
+        <input id="customTip" type="number" min="0" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>אמצעי תשלום</h2>
+      <div class="chips" id="methodChips">
+        <button class="chip" data-method="apple_pay" aria-pressed="true">Apple Pay</button>
+        <button class="chip" data-method="google_pay" aria-pressed="false">Google Pay</button>
+        <button class="chip" data-method="bit" aria-pressed="false">bit</button>
+        <button class="chip" data-method="card" aria-pressed="false">כרטיס אשראי</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="doneView" class="card success hidden">
+    <div class="big">✓</div>
+    <h2>התשלום התקבל, תודה!</h2>
+    <p id="receipt" class="sub"></p>
+    <p class="sub">אפשר לקום וללכת — הצוות כבר יודע.</p>
+  </section>
+</main>
+
+<div class="paybar hidden" id="paybar">
+  <div>
+    <div class="row muted"><span>החלק שלכם</span><span class="money" id="shareAmt"></span></div>
+    <div class="row muted"><span>טיפ</span><span class="money" id="tipAmt"></span></div>
+    <button class="btn" id="payBtn">לתשלום</button>
+    <p class="error hidden" id="error"></p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="pay.js"></script>
+</body>
+</html>

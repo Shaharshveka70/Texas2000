@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ניהול שולחנות</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wide">
+  <section id="login" class="card" style="max-width:360px;margin:40px auto">
+    <h2>כניסת צוות</h2>
+    <label for="pin">קוד PIN</label>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password">
+    <p class="error hidden" id="loginError">קוד שגוי</p>
+    <p style="margin-top:12px"><button class="btn" id="loginBtn">כניסה</button></p>
+  </section>
+
+  <section id="dash" class="hidden">
+    <div class="row no-print" style="align-items:center">
+      <h1>שולחנות</h1>
+      <div class="inline" style="flex:0 0 auto">
+        <button class="btn small secondary" onclick="window.print()">הדפסת ברקודים</button>
+        <button class="btn small secondary" id="logout">יציאה</button>
+      </div>
+    </div>
+    <p class="sub no-print">החשבון מתעדכן כאן אוטומטית כשסועדים משלמים מהטלפון.</p>
+    <div class="card no-print inline" style="align-items:end">
+      <div><label for="newTable">שולחן חדש</label><input id="newTable" placeholder="למשל: בר 3"></div>
+      <div style="flex:0 0 auto"><button class="btn small" id="addTable">הוספה</button></div>
+    </div>
+    <div class="grid" id="tables"></div>
+  </section>
+</main>
+<script src="common.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
