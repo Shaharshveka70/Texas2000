@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ניהול · Texas2000</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="wide">
+  <header class="staff-head">
+    <div class="logo" id="logo">T</div>
+    <div><h1 id="rName">…</h1><div class="muted small">מחובר כ־<span id="rUser" dir="ltr"></span></div></div>
+    <span class="spacer"></span>
+    <nav class="nav" role="tablist">
+      <button role="tab" data-view="tables" aria-selected="true">שולחנות</button>
+      <button role="tab" data-view="orders" aria-selected="false">הזמנות <span class="count hidden" id="ordersCount"></span></button>
+      <button role="tab" data-view="menu" aria-selected="false">תפריט</button>
+      <button role="tab" data-view="settings" aria-selected="false">הגדרות</button>
+    </nav>
+    <a class="btn small secondary" href="/qr" target="_blank">🖨️ ברקודים</a>
+    <button class="btn small secondary" id="logout">יציאה</button>
+  </header>
+
+  <div class="demo-bar hidden" id="demoBar">
+    <span>🎬 <b>חשבון הדגמה.</b> כדי לנסות כלקוח: לחצו על שולחן ← "מסך הלקוח", או סרקו ברקוד מהטלפון.</span>
+    <button class="btn small secondary" id="demoReset" style="margin-inline-start:auto">איפוס נתוני הדמו</button>
+  </div>
+
+  <!-- Tables -->
+  <section id="view-tables">
+    <div class="legend">
+      <span><i style="background:var(--line)"></i>פנוי</span>
+      <span><i style="background:#7a8ca3"></i>יושבים, בלי חשבון</span>
+      <span><i style="background:var(--accent)"></i>חשבון פתוח</span>
+      <span><i style="background:var(--warn)"></i>הזמנה ממתינה</span>
+      <span><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>שולם, לשחרר שולחן</span>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- Orders queue -->
+  <section id="view-orders" class="hidden">
+    <p class="sub">הזמנות שלקוחות שלחו מהטלפון. אישור מוסיף את ההזמנה לחשבון של השולחן.</p>
+    <div class="orders-grid" id="orders"></div>
+    <div class="card muted hidden" id="noOrders" style="text-align:center">אין הזמנות שממתינות לאישור 👌</div>
+  </section>
+
+  <!-- Menu -->
+  <section id="view-menu" class="hidden">
+    <form class="card" id="menuForm">
+      <h2>פריט חדש</h2>
+      <div class="inline" style="flex-wrap:wrap">
+        <div style="min-width:150px"><label for="mCat">קטגוריה</label><input id="mCat" list="cats" required maxlength="60"></div>
+        <div style="min-width:150px"><label for="mName">שם</label><input id="mName" required maxlength="60"></div>
+        <div style="min-width:200px;flex:2"><label for="mDesc">תיאור (לא חובה)</label><input id="mDesc" maxlength="200"></div>
+        <div style="max-width:110px"><label for="mPrice">מחיר ₪</label><input id="mPrice" type="number" min="0" step="0.5" required inputmode="decimal"></div>
+        <div class="shrink"><button class="btn small" type="submit" style="height:46px">הוספה</button></div>
+      </div>
+      <datalist id="cats"></datalist>
+    </form>
+    <div id="menuAdmin"></div>
+  </section>
+
+  <!-- Settings -->
+  <section id="view-settings" class="hidden" style="max-width:560px">
+    <div class="card">
+      <h2>פרטי המקום</h2>
+      <label for="setName">שם המסעדה</label>
+      <div class="inline"><input id="setName" maxlength="60"><button class="btn small shrink" id="saveName">שמירה</button></div>
+      <label class="switch" style="margin-top:16px"><input type="checkbox" id="setOrdering">
+        <span>לקוחות יכולים להזמין דרך האפליקציה<br><span class="muted small">כשכבוי: הלקוחות רואים את התפריט והחשבון ומשלמים, אבל לא מזמינים.</span></span></label>
+    </div>
+    <div class="card">
+      <h2>שולחנות</h2>
+      <p class="sub" id="tablesInfo"></p>
+      <div class="inline"><input id="addCount" type="number" min="1" max="50" value="1" style="max-width:90px">
+        <button class="btn small shrink" id="addTables">הוספת שולחנות</button></div>
+    </div>
+    <div class="card">
+      <h2>החלפת סיסמה</h2>
+      <label for="curPass">סיסמה נוכחית</label><input id="curPass" type="password" autocomplete="current-password" dir="ltr">
+      <label for="newPass">סיסמה חדשה</label><input id="newPass" type="password" autocomplete="new-password" dir="ltr">
+      <p style="margin:12px 0 0"><button class="btn small" id="changePass">עדכון סיסמה</button></p>
+    </div>
+  </section>
+</main>
+
+<!-- Table drawer -->
+<div class="overlay drawer-overlay hidden" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="drawer" id="drawerBody"></div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/staff.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ברקודים לשולחנות</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .sheet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .qr-card { text-align: center; margin: 0; }
+    .qr-card .qr { max-width: 160px; }
+    .qr-card .t { font-size: 1.4rem; font-weight: 800; }
+    @media print {
+      main.wide { padding: 0; max-width: none; }
+      .sheet-grid { grid-template-columns: repeat(3, 1fr); gap: 8mm; }
+      .qr-card { border: 1px dashed #999; padding: 6mm; }
+      .qr-card .qr { max-width: 45mm; }
+    }
+  </style>
+</head>
+<body>
+<main class="wide">
+  <div class="row no-print" style="align-items:center;margin-bottom:14px">
+    <div><h1 id="title">ברקודים לשולחנות</h1><p class="sub" style="margin:4px 0 0">הדפיסו, גזרו והניחו על כל שולחן את הברקוד שלו.</p></div>
+    <button class="btn small" onclick="window.print()">🖨️ הדפסה</button>
+  </div>
+  <div class="sheet-grid" id="grid"></div>
+</main>
+<script src="/common.js"></script>
+<script>
+  fetch('/api/staff/overview').then((r) => {
+    if (r.status === 401) { location.href = '/login'; return null; }
+    return r.json();
+  }).then((o) => {
+    if (!o) return;
+    $('title').textContent = `ברקודים · ${o.restaurant.name}`;
+    $('grid').innerHTML = o.tables.map((t) => `
+      <div class="card qr-card">
+        <div class="muted small">${esc(o.restaurant.name)}</div>
+        <div class="t">${esc(t.label)}</div>
+        <img class="qr" src="/qr/${t.token}.png" alt="ברקוד ${esc(t.label)}">
+        <div><b>סרקו להזמנה ותשלום</b></div>
+        <div class="muted small">בלי לחכות לחשבון 🙂</div>
+      </div>`).join('');
+  });
+</script>
+</body>
+</html>

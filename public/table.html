@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f7b5f">
+  <title>תפריט וחשבון</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="logo" id="logo" aria-hidden="true">☕</div>
+    <div>
+      <h1 id="restaurant">טוען…</h1>
+      <div class="muted" id="tableLabel"></div>
+    </div>
+  </header>
+
+  <!-- Step 1: diner identifies before anything else -->
+  <section id="joinView" class="card hidden">
+    <h2>ברוכים הבאים!</h2>
+    <p class="sub">כדי לראות את התפריט, להזמין ולשלם, נא להזין שם ומספר טלפון.</p>
+    <form id="joinForm" novalidate>
+      <label for="name">שם</label>
+      <input id="name" autocomplete="given-name" maxlength="40" required>
+      <label for="phone">טלפון נייד</label>
+      <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="050-1234567" required dir="ltr" style="text-align:right">
+      <p class="error hidden" id="joinError" role="alert"></p>
+      <p style="margin:16px 0 0"><button class="btn" type="submit">המשך</button></p>
+      <p class="muted small" style="margin:10px 0 0">הפרטים נמסרים למקום לצורך ההזמנה והתשלום בלבד.</p>
+    </form>
+  </section>
+
+  <section id="errorView" class="card hidden"><h2 id="errorTitle"></h2><p class="sub" id="errorText"></p></section>
+
+  <!-- Step 2: menu / bill -->
+  <section id="appView" class="hidden">
+    <p class="muted" style="margin:-6px 0 12px">שלום <b id="guestName"></b> 👋</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabMenu" aria-selected="true" data-tab="menu">תפריט</button>
+      <button role="tab" id="tabBill" aria-selected="false" data-tab="bill">החשבון <span class="count hidden" id="billCount"></span></button>
+    </div>
+
+    <div id="menuPane">
+      <p class="card small muted hidden" id="orderingOff">הזמנה דרך האפליקציה לא פעילה כרגע. אפשר לעיין בתפריט ולהזמין מהצוות.</p>
+      <nav class="cat-nav" id="catNav" aria-label="קטגוריות"></nav>
+      <div id="menuList"></div>
+    </div>
+
+    <div id="billPane" class="hidden">
+      <div class="card hidden" id="myOrdersCard">
+        <h2>ההזמנות שלי</h2>
+        <div id="myOrders"></div>
+      </div>
+      <div class="card" id="billCard">
+        <h2>החשבון של השולחן</h2>
+        <div id="billEmpty" class="muted">עדיין אין פריטים בחשבון.</div>
+        <div id="billBody" class="hidden">
+          <div id="billItems"></div>
+          <div class="row total"><span>סה״כ</span><span class="money" id="total"></span></div>
+          <div class="row muted hidden" id="paidRow"><span>כבר שולם</span><span class="money" id="paid"></span></div>
+          <div class="row total hidden" id="remainingRow"><span>נותר לתשלום</span><span class="money" id="remaining"></span></div>
+        </div>
+      </div>
+
+      <div id="payForm" class="hidden">
+        <div class="card">
+          <h2>כמה אתם משלמים?</h2>
+          <div class="chips" id="splitChips">
+            <button class="chip" data-split="mine" aria-pressed="false">רק מה שהזמנתי</button>
+            <button class="chip" data-split="all" aria-pressed="true">את כל היתרה</button>
+            <button class="chip" data-split="equal" aria-pressed="false">חלוקה שווה</button>
+            <button class="chip" data-split="custom" aria-pressed="false">סכום אחר</button>
+          </div>
+          <div id="equalBox" class="hidden">
+            <label for="people">מתחלקים בין כמה אנשים?</label>
+            <input id="people" type="number" min="2" max="20" value="2" inputmode="numeric">
+          </div>
+          <div id="customBox" class="hidden">
+            <label for="customAmount">סכום (₪)</label>
+            <input id="customAmount" type="number" min="1" step="0.01" inputmode="decimal">
+          </div>
+        </div>
+        <div class="card">
+          <h2>טיפ לצוות 💚</h2>
+          <div class="chips" id="tipChips">
+            <button class="chip" data-tip="0" aria-pressed="false">בלי</button>
+            <button class="chip" data-tip="10" aria-pressed="false">10%</button>
+            <button class="chip" data-tip="12" aria-pressed="true">12%</button>
+            <button class="chip" data-tip="15" aria-pressed="false">15%</button>
+            <button class="chip" data-tip="custom" aria-pressed="false">אחר</button>
+          </div>
+          <div id="customTipBox" class="hidden">
+            <label for="customTip">טיפ (₪)</label>
+            <input id="customTip" type="number" min="0" step="0.01" inputmode="decimal">
+          </div>
+        </div>
+        <div class="card">
+          <h2>אמצעי תשלום</h2>
+          <div class="chips" id="methodChips">
+            <button class="chip" data-method="apple_pay" aria-pressed="true">Apple Pay</button>
+            <button class="chip" data-method="google_pay" aria-pressed="false">Google Pay</button>
+            <button class="chip" data-method="bit" aria-pressed="false">bit</button>
+            <button class="chip" data-method="card" aria-pressed="false">כרטיס אשראי</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="paidView" class="card hidden" style="text-align:center">
+        <div style="font-size:2.6rem">✓</div>
+        <h2 id="paidTitle">התשלום התקבל, תודה!</h2>
+        <p class="sub" id="receipt"></p>
+        <p class="sub" style="margin:0">אפשר לקום וללכת, הצוות כבר יודע. נשמח לראותכם שוב!</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Bottom bars -->
+<div class="bottombar hidden" id="cartBar"><div>
+  <button class="btn" id="openCart"></button>
+</div></div>
+<div class="bottombar hidden" id="payBar"><div>
+  <div class="row muted"><span>החלק שלכם</span><span class="money" id="shareAmt"></span></div>
+  <div class="row muted"><span>טיפ</span><span class="money" id="tipAmt"></span></div>
+  <button class="btn" id="payBtn">לתשלום</button>
+  <p class="error hidden" id="payError" role="alert"></p>
+</div></div>
+
+<!-- Cart sheet -->
+<div class="overlay hidden" id="cartSheet" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+  <div class="sheet">
+    <div class="row" style="align-items:center"><h2 id="cartTitle" style="margin:0">ההזמנה שלי</h2>
+      <button class="icon-btn" id="closeCart" aria-label="סגירה">✕</button></div>
+    <div id="cartLines" style="margin-top:8px"></div>
+    <div class="row total"><span>סה״כ</span><span class="money" id="cartTotal"></span></div>
+    <label for="note">הערה לצוות (לא חובה)</label>
+    <textarea id="note" maxlength="200" placeholder="למשל: בלי בצל, חלב סויה…"></textarea>
+    <p class="error hidden" id="cartError" role="alert"></p>
+    <p style="margin:14px 0 0"><button class="btn" id="sendOrder">שליחת ההזמנה לצוות</button></p>
+    <p class="muted small" style="margin:8px 0 0;text-align:center">ההזמנה תתווסף לחשבון אחרי שהצוות יאשר אותה.</p>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/table.js"></script>
+</body>
+</html>

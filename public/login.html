@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>כניסה למסעדות · Texas2000</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main style="max-width:420px;padding-top:32px">
+  <a href="/" style="text-decoration:none;color:inherit"><div class="top"><div class="logo">T</div><h1>Texas2000</h1></div></a>
+
+  <div class="demo-bar">
+    <div><b>רוצים לראות איך זה עובד?</b><br><span class="small">מסעדת הדגמה: משתמש <b dir="ltr">demo</b>, סיסמה <b dir="ltr">demo1234</b></span></div>
+    <button class="btn small" id="demoBtn" style="margin-inline-start:auto">כניסה לדמו</button>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-mode="login">כניסה</button>
+    <button role="tab" aria-selected="false" data-mode="signup">הרשמת מסעדה חדשה</button>
+  </div>
+
+  <form class="card" id="loginForm" novalidate>
+    <label for="lUser">שם משתמש</label>
+    <input id="lUser" autocomplete="username" dir="ltr" required>
+    <label for="lPass">סיסמה</label>
+    <input id="lPass" type="password" autocomplete="current-password" dir="ltr" required>
+    <p class="error hidden" id="lErr" role="alert"></p>
+    <p style="margin:16px 0 0"><button class="btn" type="submit">כניסה</button></p>
+  </form>
+
+  <form class="card hidden" id="signupForm" novalidate>
+    <label for="sName">שם המסעדה / בית הקפה</label>
+    <input id="sName" maxlength="60" required>
+    <label for="sUser">שם משתמש (באנגלית)</label>
+    <input id="sUser" autocomplete="username" dir="ltr" maxlength="30" required>
+    <label for="sPass">סיסמה (לפחות 8 תווים)</label>
+    <input id="sPass" type="password" autocomplete="new-password" dir="ltr" required>
+    <label for="sTables">מספר שולחנות</label>
+    <input id="sTables" type="number" min="1" max="100" value="20" inputmode="numeric">
+    <p class="muted small" style="margin:6px 0 0">לכל שולחן ייווצר ברקוד משלו. אפשר להוסיף שולחנות בהמשך.</p>
+    <p class="error hidden" id="sErr" role="alert"></p>
+    <p style="margin:16px 0 0"><button class="btn" type="submit">יצירת חשבון</button></p>
+  </form>
+</main>
+<script src="/common.js"></script>
+<script>
+  const modeTabs = document.querySelector('.tabs');
+  function setMode(mode) {
+    modeTabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
+    $('loginForm').classList.toggle('hidden', mode !== 'login');
+    $('signupForm').classList.toggle('hidden', mode !== 'signup');
+  }
+  modeTabs.addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+  if (location.hash === '#signup') setMode('signup');
+
+  async function post(path, body, errEl) {
+    errEl.classList.add('hidden');
+    const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (res.ok) { location.href = '/staff'; return; }
+    const data = await res.json().catch(() => ({}));
+    errEl.textContent = errorText(data.error);
+    errEl.classList.remove('hidden');
+  }
+
+  $('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    post('/api/auth/login', { username: $('lUser').value, password: $('lPass').value }, $('lErr'));
+  });
+  $('signupForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    post('/api/auth/signup', { restaurantName: $('sName').value, username: $('sUser').value,
+      password: $('sPass').value, tables: parseInt($('sTables').value, 10) || 20 }, $('sErr'));
+  });
+  $('demoBtn').addEventListener('click', () => post('/api/auth/login', { username: 'demo', password: 'demo1234' }, $('lErr')));
+
+  // Already logged in? Go straight to the dashboard.
+  fetch('/api/auth/me').then((r) => { if (r.ok) location.href = '/staff'; });
+</script>
+</body>
+</html>
