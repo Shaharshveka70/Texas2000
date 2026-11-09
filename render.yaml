@@ -1,0 +1,16 @@
+# Render Blueprint: one web service running the Texas2000 demo.
+# Free plan: the service sleeps after ~15 idle minutes (first visit then takes ~1 minute)
+# and the disk is not persistent, so the demo café is rebuilt on every start.
+services:
+  - type: web
+    name: texas2000
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/legal
+    envVars:
+      - key: NODE_VERSION
+        value: "22.13.0"
+      - key: SEED_DEMO
+        value: "true"

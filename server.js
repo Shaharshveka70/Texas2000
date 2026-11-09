@@ -17,7 +17,8 @@ startRetentionJob(db, RETENTION_MONTHS);
 const app = createApp({
   db,
   provider: mockProvider,
-  publicUrl: process.env.PUBLIC_URL,
+  // Render sets RENDER_EXTERNAL_URL to the service's public address; QR codes must point there.
+  publicUrl: process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL,
   retentionMonths: RETENTION_MONTHS,
   operator: { name: process.env.OPERATOR_NAME, email: process.env.OPERATOR_EMAIL, address: process.env.OPERATOR_ADDRESS },
 });
