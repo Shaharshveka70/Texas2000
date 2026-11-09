@@ -10,7 +10,7 @@
 <main class="wide">
   <header class="staff-head">
     <div class="logo" id="logo">T</div>
-    <div><h1 id="rName">…</h1><div class="muted small">מחובר כ־<span id="rUser" dir="ltr"></span></div></div>
+    <div><h1 id="rName">…</h1><div class="muted small">מחובר כ־<span id="rUser" dir="ltr"></span> · <span id="rMode"></span></div></div>
     <span class="spacer"></span>
     <nav class="nav" role="tablist">
       <button role="tab" data-view="tables" aria-selected="true">שולחנות</button>
@@ -33,7 +33,7 @@
       <span><i style="background:var(--line)"></i>פנוי</span>
       <span><i style="background:#7a8ca3"></i>יושבים, בלי חשבון</span>
       <span><i style="background:var(--accent)"></i>חשבון פתוח</span>
-      <span><i style="background:var(--warn)"></i>הזמנה ממתינה</span>
+      <span id="legendPending"><i style="background:var(--warn)"></i>הזמנה ממתינה</span>
       <span><i style="background:var(--accent-soft);border:1px solid var(--accent)"></i>שולם, לשחרר שולחן</span>
     </div>
     <div class="tiles" id="tiles"></div>
@@ -65,11 +65,19 @@
   <!-- Settings -->
   <section id="view-settings" class="hidden" style="max-width:560px">
     <div class="card">
+      <h2>מה הלקוחות עושים כשהם סורקים את הברקוד?</h2>
+      <div class="modes" role="radiogroup" aria-label="מצב עבודה">
+        <label class="mode"><input type="radio" name="mode" value="pay" id="modePay">
+          <span><b>רק תשלום</b><span class="muted small">הלקוח רואה את החשבון של השולחן, משלם ומשאיר טיפ. המלצרים מזינים את ההזמנות כרגיל.</span></span></label>
+        <label class="mode"><input type="radio" name="mode" value="order" id="modeOrder">
+          <span><b>הזמנה ותשלום</b><span class="muted small">הלקוח גם מזמין מהתפריט בטלפון. כל הזמנה מגיעה לצוות לאישור, ואז נכנסת לחשבון.</span></span></label>
+      </div>
+      <p class="muted small hidden" id="modeDemoHint" style="margin:10px 0 0">בחשבון הדמו: אחרי החלפת מצב, לחצו על "איפוס נתוני הדמו" כדי לראות תרחיש שמתאים למצב החדש.</p>
+    </div>
+    <div class="card">
       <h2>פרטי המקום</h2>
       <label for="setName">שם המסעדה</label>
       <div class="inline"><input id="setName" maxlength="60"><button class="btn small shrink" id="saveName">שמירה</button></div>
-      <label class="switch" style="margin-top:16px"><input type="checkbox" id="setOrdering">
-        <span>לקוחות יכולים להזמין דרך האפליקציה<br><span class="muted small">כשכבוי: הלקוחות רואים את התפריט והחשבון ומשלמים, אבל לא מזמינים.</span></span></label>
     </div>
     <div class="card">
       <h2>שולחנות</h2>

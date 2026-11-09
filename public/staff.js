@@ -37,6 +37,12 @@ async function refresh() {
   $('logo').textContent = o.restaurant.name.trim().charAt(0) || 'T';
   document.title = `${o.pendingOrders.length ? `(${o.pendingOrders.length}) ` : ''}${o.restaurant.name} · ניהול`;
   $('demoBar').classList.toggle('hidden', !o.restaurant.isDemo);
+  $('rMode').textContent = o.restaurant.orderingEnabled ? 'הזמנה ותשלום' : 'רק תשלום';
+  // Payment-only places have no order queue (unless orders are still waiting from before the switch).
+  const showOrders = o.restaurant.orderingEnabled || o.pendingOrders.length > 0;
+  document.querySelector('.nav [data-view="orders"]').classList.toggle('hidden', !showOrders);
+  $('legendPending').classList.toggle('hidden', !showOrders);
+  if (!showOrders && S.view === 'orders') setView('tables');
 
   // Alert on newly arrived orders.
   const ids = new Set(o.pendingOrders.map((x) => x.id));
@@ -289,16 +295,19 @@ function renderSettings() {
   const o = S.overview;
   if (!o) return;
   $('setName').value = o.restaurant.name;
-  $('setOrdering').checked = o.restaurant.orderingEnabled;
+  $(o.restaurant.orderingEnabled ? 'modeOrder' : 'modePay').checked = true;
+  $('modeDemoHint').classList.toggle('hidden', !o.restaurant.isDemo);
   $('tablesInfo').textContent = `כרגע יש ${o.tables.length} שולחנות, לכל אחד ברקוד משלו.`;
 }
 $('saveName').addEventListener('click', async () => {
   await api('/settings', { method: 'PATCH', body: { name: $('setName').value } });
   toast('נשמר'); refresh();
 });
-$('setOrdering').addEventListener('change', async (e) => {
-  await api('/settings', { method: 'PATCH', body: { orderingEnabled: e.target.checked } });
-  toast(e.target.checked ? 'הזמנות דרך האפליקציה הופעלו' : 'הזמנות דרך האפליקציה כובו'); refresh();
+document.querySelector('.modes').addEventListener('change', async (e) => {
+  const orderingEnabled = e.target.value === 'order';
+  await api('/settings', { method: 'PATCH', body: { orderingEnabled } });
+  toast(orderingEnabled ? 'עכשיו הלקוחות יכולים גם להזמין' : 'עכשיו הלקוחות רק רואים את החשבון ומשלמים');
+  refresh();
 });
 $('addTables').addEventListener('click', async () => {
   await api('/tables', { method: 'POST', body: { count: parseInt($('addCount').value, 10) || 1 } });

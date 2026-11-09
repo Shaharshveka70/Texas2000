@@ -111,6 +111,42 @@ describe('staff auth', () => {
   });
 });
 
+describe('modes', () => {
+  test('demo starts in payment-only mode: diners cannot order', async () => {
+    const staff = await staffLogin();
+    const o = (await staff.get('/api/staff/overview')).data;
+    assert.equal(o.restaurant.orderingEnabled, false);
+    assert.equal(o.pendingOrders.length, 0);
+    const t = tableToken(2);
+    const g = await joinTable(t, 'בדיקה', '0546660001');
+    const st = (await g.get(`/api/t/${t}/state`)).data;
+    assert.equal(st.orderingEnabled, false);
+    assert.ok(st.bill.items.length > 0, 'waiter-entered bill is visible');
+    assert.ok(st.bill.items.every((i) => i.guest_id === null));
+    const { data: menu } = await g.get(`/api/t/${t}/menu`);
+    const r = await g.post(`/api/t/${t}/orders`, { items: [{ menuItemId: menu.categories[0].items[0].id, quantity: 1 }] });
+    assert.equal(r.status, 403);
+  });
+
+  test('signup defaults to payment-only and can choose ordering', async () => {
+    const a = client();
+    await a.post('/api/auth/signup', { restaurantName: 'רק תשלום', username: 'payonly', password: 'secret123' });
+    assert.equal((await a.get('/api/staff/overview')).data.restaurant.orderingEnabled, false);
+    const b = client();
+    await b.post('/api/auth/signup', { restaurantName: 'עם הזמנות', username: 'withorders', password: 'secret123', orderingEnabled: true });
+    assert.equal((await b.get('/api/staff/overview')).data.restaurant.orderingEnabled, true);
+  });
+
+  test('switching the demo to ordering mode and resetting shows an order waiting for approval', async () => {
+    const staff = await staffLogin();
+    await staff.patch('/api/staff/settings', { orderingEnabled: true });
+    await staff.post('/api/staff/demo/reset');
+    const o = (await staff.get('/api/staff/overview')).data;
+    assert.equal(o.restaurant.orderingEnabled, true);
+    assert.equal(o.pendingOrders.length, 1);
+  });
+});
+
 describe('diner flow', () => {
   test('must identify before seeing the menu', async () => {
     const t = tableToken(3);
@@ -283,11 +319,17 @@ describe('privacy', () => {
 });
 
 describe('demo', () => {
-  test('reset restores the sample scenario', async () => {
+  test('reset restores the sample scenario for the current mode', async () => {
     const staff = await staffLogin();
     assert.equal((await staff.post('/api/staff/demo/reset')).status, 200);
-    const { data } = await staff.get('/api/staff/overview');
+    let { data } = await staff.get('/api/staff/overview');
     assert.equal(data.pendingOrders.length, 1);
+    assert.equal(data.tables.filter((t) => t.bill).length, 4);
+
+    await staff.patch('/api/staff/settings', { orderingEnabled: false });
+    await staff.post('/api/staff/demo/reset');
+    ({ data } = await staff.get('/api/staff/overview'));
+    assert.equal(data.pendingOrders.length, 0);
     assert.equal(data.tables.filter((t) => t.bill).length, 4);
     assert.equal((await staff.post('/api/staff/password', { current: 'demo1234', next: 'hijacked1' })).status, 403);
   });

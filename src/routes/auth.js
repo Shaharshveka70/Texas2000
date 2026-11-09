@@ -26,7 +26,8 @@ function authRouter({ db }) {
     if (db.prepare('SELECT 1 FROM restaurants WHERE username = ?').get(username)) {
       return res.status(409).json({ error: 'username_taken' });
     }
-    const id = createRestaurant(db, { name, username, password, tables });
+    const orderingEnabled = req.body?.orderingEnabled === true;
+    const id = createRestaurant(db, { name, username, password, tables, orderingEnabled });
     createSession(db, req, res, id);
     res.status(201).json({ ok: true });
   });

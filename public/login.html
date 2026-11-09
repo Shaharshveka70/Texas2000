@@ -39,6 +39,14 @@
     <label for="sTables">מספר שולחנות</label>
     <input id="sTables" type="number" min="1" max="100" value="20" inputmode="numeric">
     <p class="muted small" style="margin:6px 0 0">לכל שולחן ייווצר ברקוד משלו. אפשר להוסיף שולחנות בהמשך.</p>
+    <label>מה הלקוחות יעשו כשיסרקו את הברקוד?</label>
+    <div class="modes" role="radiogroup" aria-label="מצב עבודה">
+      <label class="mode"><input type="radio" name="sMode" value="pay" checked>
+        <span><b>רק תשלום</b><span class="muted small">רואים את החשבון, משלמים ומשאירים טיפ.</span></span></label>
+      <label class="mode"><input type="radio" name="sMode" value="order">
+        <span><b>הזמנה ותשלום</b><span class="muted small">גם מזמינים מהתפריט, והצוות מאשר.</span></span></label>
+    </div>
+    <p class="muted small" style="margin:6px 0 0">אפשר לשנות את זה בכל רגע בהגדרות.</p>
     <p class="error hidden" id="sErr" role="alert"></p>
     <p class="muted small" style="margin:12px 0 0">ביצירת החשבון אתם מתחייבים להשתמש במידע של הלקוחות לפי <a href="/privacy" target="_blank">מדיניות הפרטיות</a>, ולשלוח הודעות שיווקיות רק למי שהסכים לקבל אותן.</p>
     <p style="margin:16px 0 0"><button class="btn" type="submit">יצירת חשבון</button></p>
@@ -72,7 +80,8 @@
   $('signupForm').addEventListener('submit', (e) => {
     e.preventDefault();
     post('/api/auth/signup', { restaurantName: $('sName').value, username: $('sUser').value,
-      password: $('sPass').value, tables: parseInt($('sTables').value, 10) || 20 }, $('sErr'));
+      password: $('sPass').value, tables: parseInt($('sTables').value, 10) || 20,
+      orderingEnabled: document.querySelector('input[name="sMode"]:checked').value === 'order' }, $('sErr'));
   });
   $('demoBtn').addEventListener('click', () => post('/api/auth/login', { username: 'demo', password: 'demo1234' }, $('lErr')));
 

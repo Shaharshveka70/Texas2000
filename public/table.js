@@ -60,6 +60,9 @@ async function boot() {
   $('tableLabel').textContent = state.info.table;
   $('logo').textContent = state.info.restaurant.trim().charAt(0) || '☕';
   document.title = `${state.info.restaurant} · ${state.info.table}`;
+  $('joinIntro').textContent = state.info.orderingEnabled
+    ? 'כדי לראות את התפריט, להזמין ולשלם, נא להזין שם ומספר טלפון.'
+    : 'כדי לראות את החשבון ולשלם, נא להזין שם ומספר טלפון.';
   fetch('/api/legal').then((r) => r.json()).then((l) => { $('retentionTxt').textContent = `${l.retentionMonths} חודשים`; }).catch(() => {});
   document.querySelectorAll('.placeName').forEach((el) => { el.textContent = state.info.restaurant; });
   if (state.guestToken && await enterApp()) return;
@@ -97,7 +100,7 @@ async function enterApp() {
   show('appView');
   applyState(st.data, true); // sets orderingEnabled, which the menu needs to show + buttons
   renderMenu();
-  setTab(state.tab);
+  applyMode();
   return true;
 }
 
@@ -107,6 +110,14 @@ document.querySelector('.tabs').addEventListener('click', (e) => {
   const b = e.target.closest('[data-tab]');
   if (b) setTab(b.dataset.tab);
 });
+
+// "Payment only" places: no menu or tabs, the diner lands straight on the bill.
+function applyMode() {
+  const ordering = canOrder();
+  document.querySelector('.tabs').classList.toggle('hidden', !ordering);
+  if (!ordering) state.cart.clear();
+  setTab(ordering ? state.tab : 'bill');
+}
 
 function setTab(tab) {
   state.tab = tab;
@@ -227,7 +238,7 @@ $('sendOrder').addEventListener('click', async () => {
 function applyState(data, first = false) {
   const prevOrdering = state.data?.orderingEnabled;
   state.data = data;
-  if (!first && prevOrdering !== data.orderingEnabled) renderMenu();
+  if (!first && prevOrdering !== data.orderingEnabled) { renderMenu(); applyMode(); }
 
   // Notify when staff decide on an order.
   for (const o of data.orders) {

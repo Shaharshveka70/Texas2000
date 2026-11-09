@@ -26,10 +26,11 @@ const MENU = [
   ['מאפים וקינוחים', 'בראוניז', 'חם, עם כדור גלידת וניל', 2600],
 ];
 
-function createRestaurant(db, { name, username, password, tables = 20 }) {
+// orderingEnabled=false is "payment only": diners see the bill and pay; staff enter the items.
+function createRestaurant(db, { name, username, password, tables = 20, orderingEnabled = false }) {
   return tx(db, () => {
-    const id = Number(db.prepare('INSERT INTO restaurants (name, username, password_hash) VALUES (?, ?, ?)')
-      .run(name, username, hashPassword(password)).lastInsertRowid);
+    const id = Number(db.prepare('INSERT INTO restaurants (name, username, password_hash, ordering_enabled) VALUES (?, ?, ?, ?)')
+      .run(name, username, hashPassword(password), orderingEnabled ? 1 : 0).lastInsertRowid);
     addTables(db, id, tables);
     return id;
   });
@@ -42,7 +43,7 @@ function loadMenu(db, restaurantId) {
   MENU.forEach(([category, name, description, price], i) => ins.run(restaurantId, category, name, description, price, i + 1));
 }
 
-// Wipe all activity and recreate a believable mid-service snapshot.
+// Wipe all activity and recreate a believable mid-service snapshot for the restaurant's current mode.
 function resetDemoActivity(db, restaurantId) {
   tx(db, () => {
     const tableIds = db.prepare('SELECT id FROM tables WHERE restaurant_id = ? ORDER BY number').all(restaurantId).map((t) => t.id);
@@ -52,7 +53,8 @@ function resetDemoActivity(db, restaurantId) {
       db.prepare('DELETE FROM orders WHERE table_id = ?').run(tid);
       db.prepare('DELETE FROM guests WHERE table_id = ?').run(tid);
     }
-    db.prepare('UPDATE restaurants SET name = ?, ordering_enabled = 1 WHERE id = ?').run(DEMO_NAME, restaurantId);
+    db.prepare('UPDATE restaurants SET name = ? WHERE id = ?').run(DEMO_NAME, restaurantId);
+    const ordering = !!db.prepare('SELECT ordering_enabled FROM restaurants WHERE id = ?').get(restaurantId).ordering_enabled;
     loadMenu(db, restaurantId);
 
     const menu = Object.fromEntries(db.prepare('SELECT name, id, price FROM menu_items WHERE restaurant_id = ? AND deleted = 0')
@@ -73,6 +75,13 @@ function resetDemoActivity(db, restaurantId) {
       }
       return billId;
     };
+    // Items a diner had: ordered through the app (ordering mode) or entered by the waiter (payment-only mode).
+    const served = (tid, gid, lines, minsAgo) => {
+      if (ordering) return order(tid, gid, lines, { status: 'approved', minsAgo });
+      const billId = ensureOpenBill(db, tid);
+      for (const [itemName, qty] of lines) addBillItem(db, billId, { name: itemName, quantity: qty, unitPrice: menu[itemName].price });
+      return billId;
+    };
     const pay = (billId, gid, amount, tip, method) => db.prepare(
       "INSERT INTO payments (bill_id, guest_id, amount, tip, method, status, provider_ref) VALUES (?, ?, ?, ?, ?, 'approved', ?)")
       .run(billId, gid, amount, tip, method, 'mock_demo' + newToken(4));
@@ -81,23 +90,25 @@ function resetDemoActivity(db, restaurantId) {
     // Table 2: two friends eating, bill open.
     const dana = guest(t2, 'דנה', '0501234567', 40, 1);
     const noam = guest(t2, 'נועם', '0527654321', 38);
-    order(t2, dana, [['ארוחת בוקר ישראלית', 1], ['קפוצ׳ינו', 1]], { status: 'approved', minsAgo: 35 });
-    order(t2, noam, [['שקשוקה', 1], ['לימונדה', 1]], { status: 'approved', minsAgo: 34 });
+    served(t2, dana, [['ארוחת בוקר ישראלית', 1], ['קפוצ׳ינו', 1]], 35);
+    served(t2, noam, [['שקשוקה', 1], ['לימונדה', 1]], 34);
 
-    // Table 5: just ordered, waiting for staff approval.
-    const michal = guest(t5, 'מיכל', '0541112233', 3);
-    order(t5, michal, [['קפוצ׳ינו', 2], ['קרואסון חמאה', 2]], { status: 'pending', minsAgo: 1, note: 'אחד הקפוצ׳ינו על שיבולת שועל' });
+    // Table 5 (ordering mode only): just ordered, waiting for staff approval.
+    if (ordering) {
+      const michal = guest(t5, 'מיכל', '0541112233', 3);
+      order(t5, michal, [['קפוצ׳ינו', 2], ['קרואסון חמאה', 2]], { status: 'pending', minsAgo: 1, note: 'אחד הקפוצ׳ינו על שיבולת שועל' });
+    }
 
     // Table 8: one diner already paid their part.
     const ron = guest(t8, 'רון', '0509998877', 55, 1);
     const yael = guest(t8, 'יעל', '0533334444', 54);
-    const b8 = order(t8, ron, [['טוסט גבינות', 1], ['אייס קפה', 1]], { status: 'approved', minsAgo: 50 });
-    order(t8, yael, [['סלט קינואה', 1], ['מיץ תפוזים סחוט', 1]], { status: 'approved', minsAgo: 49 });
+    const b8 = served(t8, ron, [['טוסט גבינות', 1], ['אייס קפה', 1]], 50);
+    served(t8, yael, [['סלט קינואה', 1], ['מיץ תפוזים סחוט', 1]], 49);
     pay(b8, ron, 6000, 720, 'apple_pay');
 
     // Table 11: fully paid, waiting for staff to release the table.
     const avi = guest(t11, 'אבי', '0523456789', 70);
-    const b11 = order(t11, avi, [['אספרסו', 1], ['עוגת גבינה', 1]], { status: 'approved', minsAgo: 65 });
+    const b11 = served(t11, avi, [['אספרסו', 1], ['עוגת גבינה', 1]], 65);
     pay(b11, avi, 4200, 500, 'bit');
     db.prepare("UPDATE bills SET status = 'paid', closed_at = ? WHERE id = ?").run(new Date().toISOString(), b11);
 
