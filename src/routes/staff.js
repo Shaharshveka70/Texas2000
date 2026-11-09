@@ -44,6 +44,7 @@ function staffRouter({ db }) {
     const orders = pendingOrders(req.restaurant.id);
     res.json({
       restaurant: { name: req.restaurant.name, username: req.restaurant.username, orderingEnabled: !!req.restaurant.ordering_enabled,
+        requireContact: !!req.restaurant.require_contact,
         isDemo: req.restaurant.username.toLowerCase() === DEMO_USERNAME },
       tables: tables.map((t) => {
         const b = billSummary(db, currentBill(db, t.id));
@@ -224,7 +225,7 @@ function staffRouter({ db }) {
   // ---------- Settings ----------
 
   r.patch('/settings', (req, res) => {
-    const { name, orderingEnabled } = req.body || {};
+    const { name, orderingEnabled, requireContact } = req.body || {};
     if (name !== undefined) {
       const n = String(name).trim();
       if (n.length < 2 || n.length > 60) return res.status(400).json({ error: 'invalid_name' });
@@ -232,6 +233,9 @@ function staffRouter({ db }) {
     }
     if (orderingEnabled !== undefined) {
       db.prepare('UPDATE restaurants SET ordering_enabled = ? WHERE id = ?').run(orderingEnabled ? 1 : 0, req.restaurant.id);
+    }
+    if (requireContact !== undefined) {
+      db.prepare('UPDATE restaurants SET require_contact = ? WHERE id = ?').run(requireContact ? 1 : 0, req.restaurant.id);
     }
     res.json({ ok: true });
   });

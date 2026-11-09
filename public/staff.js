@@ -91,7 +91,7 @@ function orderCard(o, { compact = false } = {}) {
   const total = o.items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   return `<div class="card">
     ${compact ? '' : `<div class="row"><h2 style="margin:0">${esc(o.table.label)}</h2><span class="muted small">${timeAgo(o.created_at)}</span></div>
-    <div class="muted small" style="margin-bottom:8px">${esc(o.guest.name || '')} · <a href="tel:${esc(o.guest.phone)}" dir="ltr">${esc(o.guest.phone || '')}</a></div>`}
+    <div class="muted small" style="margin-bottom:8px">${esc(o.guest.name || '')}${o.guest.phone ? ` · <a href="tel:${esc(o.guest.phone)}" dir="ltr">${esc(o.guest.phone)}</a>` : ''}</div>`}
     ${o.items.map((i) => `<div class="row"><span><b>${i.quantity}×</b> ${esc(i.name)}</span><span class="money muted">${fmt(i.quantity * i.unit_price)}</span></div>`).join('')}
     ${o.note ? `<div class="badge warn" style="margin:6px 0;white-space:normal">📝 ${esc(o.note)}</div>` : ''}
     <div class="row total"><span>סה״כ</span><span class="money">${fmt(total)}</span></div>
@@ -151,7 +151,7 @@ async function openTable(id, silent = false) {
       <h2>סועדים בשולחן</h2>
       ${d.guests.length ? d.guests.map((g) => `<div class="row"><span>${esc(g.name)}
         ${g.marketing_consent ? '<span class="badge ok" title="הסכים/ה לקבל הודעות שיווקיות">מאשר/ת דיוור</span>' : ''}</span>
-        <a href="tel:${esc(g.phone)}" dir="ltr" class="small">${esc(g.phone)}</a></div>`).join('')
+        ${g.phone ? `<a href="tel:${esc(g.phone)}" dir="ltr" class="small">${esc(g.phone)}</a>` : '<span class="muted small">בלי פרטים</span>'}</div>`).join('')
         : '<div class="muted">אף אחד לא סרק עדיין</div>'}
     </div>
 
@@ -297,13 +297,21 @@ function renderSettings() {
   $('setName').value = o.restaurant.name;
   $(o.restaurant.orderingEnabled ? 'modeOrder' : 'modePay').checked = true;
   $('modeDemoHint').classList.toggle('hidden', !o.restaurant.isDemo);
+  $(o.restaurant.requireContact ? 'idContact' : 'idNone').checked = true;
   $('tablesInfo').textContent = `כרגע יש ${o.tables.length} שולחנות, לכל אחד ברקוד משלו.`;
 }
 $('saveName').addEventListener('click', async () => {
   await api('/settings', { method: 'PATCH', body: { name: $('setName').value } });
   toast('נשמר'); refresh();
 });
-document.querySelector('.modes').addEventListener('change', async (e) => {
+$('idModes').addEventListener('change', async (e) => {
+  const requireContact = e.target.value === 'contact';
+  await api('/settings', { method: 'PATCH', body: { requireContact } });
+  toast(requireContact ? 'מעכשיו הלקוחות מזינים שם וטלפון' : 'מעכשיו הלקוחות נכנסים בלי פרטים, רק לפי השולחן');
+  refresh();
+});
+
+$('orderModes').addEventListener('change', async (e) => {
   const orderingEnabled = e.target.value === 'order';
   await api('/settings', { method: 'PATCH', body: { orderingEnabled } });
   toast(orderingEnabled ? 'עכשיו הלקוחות יכולים גם להזמין' : 'עכשיו הלקוחות רק רואים את החשבון ומשלמים');

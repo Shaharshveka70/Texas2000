@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 function newToken(bytes = 9) {
   return crypto.randomBytes(bytes).toString('base64url');
@@ -18,6 +18,7 @@ const SCHEMA = `
     username TEXT NOT NULL UNIQUE COLLATE NOCASE,
     password_hash TEXT NOT NULL,
     ordering_enabled INTEGER NOT NULL DEFAULT 1,
+    require_contact INTEGER NOT NULL DEFAULT 1, -- 1: diners give name + phone; 0: anonymous, by table only
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE TABLE staff_sessions (
@@ -123,6 +124,13 @@ function openDb(file) {
       CREATE INDEX IF NOT EXISTS idx_guests_phone ON guests(phone);
       PRAGMA user_version = 3;`);
     version = 3;
+  }
+  if (version === 3) {
+    // v3 → v4: per-restaurant choice to let diners in without name and phone.
+    db.exec(`
+      ALTER TABLE restaurants ADD COLUMN require_contact INTEGER NOT NULL DEFAULT 1;
+      PRAGMA user_version = 4;`);
+    version = 4;
   }
   if (version !== SCHEMA_VERSION) {
     const existing = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all();

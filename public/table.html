@@ -22,6 +22,7 @@
     <h2>ברוכים הבאים!</h2>
     <p class="sub" id="joinIntro">כדי לראות את החשבון ולשלם, נא להזין שם ומספר טלפון.</p>
     <form id="joinForm" novalidate>
+      <div id="contactFields">
       <label for="name">שם</label>
       <input id="name" autocomplete="given-name" maxlength="40" required>
       <label for="phone">טלפון נייד</label>
@@ -34,8 +35,10 @@
         <span>קראתי ואני מסכים/ה ל<a href="/privacy" target="_blank">מדיניות הפרטיות</a></span></label>
       <label class="switch consent"><input type="checkbox" id="marketing">
         <span>אשמח לקבל מ<span class="placeName">בית העסק</span> עדכונים ומבצעים ב-SMS <span class="muted">(לא חובה, אפשר לבטל בכל עת)</span></span></label>
+      </div>
       <p class="error hidden" id="joinError" role="alert"></p>
-      <p style="margin:16px 0 0"><button class="btn" type="submit">המשך</button></p>
+      <p style="margin:16px 0 0"><button class="btn" type="submit" id="joinBtn">המשך</button></p>
+      <p class="muted small hidden" id="anonNote" style="margin:10px 0 0;text-align:center">לא נדרשים פרטים אישיים. <a href="/privacy" target="_blank">מדיניות הפרטיות</a></p>
     </form>
   </section>
 
@@ -43,7 +46,7 @@
 
   <!-- Step 2: menu / bill -->
   <section id="appView" class="hidden">
-    <p class="muted" style="margin:-6px 0 12px">שלום <b id="guestName"></b> 👋</p>
+    <p class="muted" id="greeting" style="margin:-6px 0 12px">שלום <b id="guestName"></b> 👋</p>
     <div class="tabs" role="tablist">
       <button role="tab" id="tabMenu" aria-selected="true" data-tab="menu">תפריט</button>
       <button role="tab" id="tabBill" aria-selected="false" data-tab="bill">החשבון <span class="count hidden" id="billCount"></span></button>

@@ -51,7 +51,7 @@ function currentRestaurant(db, req) {
   const token = parseCookies(req.headers.cookie)[COOKIE];
   if (!token) return null;
   return db.prepare(`
-    SELECT r.id, r.name, r.username, r.ordering_enabled
+    SELECT r.id, r.name, r.username, r.ordering_enabled, r.require_contact
     FROM staff_sessions s JOIN restaurants r ON r.id = s.restaurant_id
     WHERE s.token = ? AND s.expires_at > ?`).get(token, Date.now()) || null;
 }

@@ -44,9 +44,28 @@ function showError(title, text) {
   show('errorView');
 }
 
+// Places that don't ask for details: no form, just a button (used after the table is released).
+const anonymous = () => state.info && !state.info.requireContact;
+
 function showJoin() {
+  const anon = anonymous();
+  $('contactFields').classList.toggle('hidden', anon);
+  $('anonNote').classList.toggle('hidden', !anon);
+  $('joinBtn').textContent = anon ? 'לצפייה בחשבון' : 'המשך';
+  if (anon) $('joinIntro').textContent = 'לחצו כדי לראות את החשבון של השולחן ולשלם.';
   show('joinView');
-  setTimeout(() => $('name').focus(), 50);
+  if (!anon) setTimeout(() => $('name').focus(), 50);
+}
+
+async function join(body) {
+  const res = await fetch(`/api/t/${encodeURIComponent(tableToken)}/join`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return { error: data.error || 'server_error' };
+  state.guestToken = data.guestToken;
+  store.set(data.guestToken);
+  return {};
 }
 
 // ---------- Boot ----------
@@ -66,12 +85,20 @@ async function boot() {
   fetch('/api/legal').then((r) => r.json()).then((l) => { $('retentionTxt').textContent = `${l.retentionMonths} חודשים`; }).catch(() => {});
   document.querySelectorAll('.placeName').forEach((el) => { el.textContent = state.info.restaurant; });
   if (state.guestToken && await enterApp()) return;
+  // Anonymous places: the QR already identifies the table, so go straight in.
+  if (anonymous() && !(await join({})).error && await enterApp()) return;
   showJoin();
 }
 
 $('joinForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('joinError').classList.add('hidden');
+  if (anonymous()) {
+    const r = await join({});
+    if (r.error) { $('joinError').textContent = errorText(r.error); $('joinError').classList.remove('hidden'); return; }
+    enterApp();
+    return;
+  }
   if (!$('acceptPrivacy').checked) {
     $('joinError').textContent = errorText('privacy_required');
     $('joinError').classList.remove('hidden');
@@ -248,6 +275,7 @@ function applyState(data, first = false) {
     state.orderStatus.set(o.id, o.status);
   }
   $('guestName').textContent = data.guest.name;
+  $('greeting').classList.toggle('hidden', anonymous()); // "Hello guest 1" adds nothing
   renderOrders();
   renderBill();
 }

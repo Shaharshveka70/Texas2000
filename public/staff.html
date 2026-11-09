@@ -66,13 +66,22 @@
   <section id="view-settings" class="hidden" style="max-width:560px">
     <div class="card">
       <h2>מה הלקוחות עושים כשהם סורקים את הברקוד?</h2>
-      <div class="modes" role="radiogroup" aria-label="מצב עבודה">
+      <div class="modes" id="orderModes" role="radiogroup" aria-label="מצב עבודה">
         <label class="mode"><input type="radio" name="mode" value="pay" id="modePay">
           <span><b>רק תשלום</b><span class="muted small">הלקוח רואה את החשבון של השולחן, משלם ומשאיר טיפ. המלצרים מזינים את ההזמנות כרגיל.</span></span></label>
         <label class="mode"><input type="radio" name="mode" value="order" id="modeOrder">
           <span><b>הזמנה ותשלום</b><span class="muted small">הלקוח גם מזמין מהתפריט בטלפון. כל הזמנה מגיעה לצוות לאישור, ואז נכנסת לחשבון.</span></span></label>
       </div>
       <p class="muted small hidden" id="modeDemoHint" style="margin:10px 0 0">בחשבון הדמו: אחרי החלפת מצב, לחצו על "איפוס נתוני הדמו" כדי לראות תרחיש שמתאים למצב החדש.</p>
+    </div>
+    <div class="card">
+      <h2>האם הלקוחות מזינים שם וטלפון?</h2>
+      <div class="modes" id="idModes" role="radiogroup" aria-label="זיהוי לקוחות">
+        <label class="mode"><input type="radio" name="idMode" value="contact" id="idContact">
+          <span><b>כן, שם וטלפון</b><span class="muted small">יודעים מי יושב בכל שולחן ואפשר ליצור קשר. לקוחות יכולים גם להסכים לקבל עדכונים ומבצעים.</span></span></label>
+        <label class="mode"><input type="radio" name="idMode" value="none" id="idNone">
+          <span><b>לא, רק לפי השולחן</b><span class="muted small">הכי מהיר: סורקים ונכנסים ישר לחשבון, בלי טופס. לא נאספים פרטים אישיים.</span></span></label>
+      </div>
     </div>
     <div class="card">
       <h2>פרטי המקום</h2>

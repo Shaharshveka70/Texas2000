@@ -147,6 +147,38 @@ describe('modes', () => {
   });
 });
 
+describe('anonymous diners (no name or phone)', () => {
+  test('a restaurant can let diners in by table only', async () => {
+    const owner = client();
+    await owner.post('/api/auth/signup', { restaurantName: 'קפה אנונימי', username: 'anoncafe', password: 'secret123' });
+    assert.equal((await owner.get('/api/staff/overview')).data.restaurant.requireContact, true);
+    const t = tableToken(1, 'anoncafe');
+
+    // Default: details required.
+    assert.equal((await client().post(`/api/t/${t}/join`, {})).status, 400);
+
+    await owner.patch('/api/staff/settings', { requireContact: false });
+    assert.equal((await client().get(`/api/t/${t}/info`)).data.requireContact, false);
+    const a = await client().post(`/api/t/${t}/join`, {});
+    const b = await client().post(`/api/t/${t}/join`, {});
+    assert.equal(a.status, 201);
+    assert.equal(a.data.name, 'אורח/ת 1');
+    assert.equal(b.data.name, 'אורח/ת 2');
+
+    // The anonymous diner sees the bill and pays like anyone else.
+    const tableId = (await owner.get('/api/staff/overview')).data.tables[0].id;
+    await owner.post(`/api/staff/tables/${tableId}/items`, { name: 'קפה', unitPrice: 1500, quantity: 2 });
+    const g = client(); g.setGuest(a.data.guestToken);
+    const st = (await g.get(`/api/t/${t}/state`)).data;
+    assert.equal(st.bill.total, 3000);
+    const paid = await g.post(`/api/t/${t}/pay`, { billId: st.bill.id, amount: 3000, tip: 300, method: 'bit' });
+    assert.equal(paid.data.bill.status, 'paid');
+
+    const guests = (await owner.get(`/api/staff/tables/${tableId}`)).data.guests;
+    assert.ok(guests.every((x) => x.phone === ''));
+  });
+});
+
 describe('diner flow', () => {
   test('must identify before seeing the menu', async () => {
     const t = tableToken(3);

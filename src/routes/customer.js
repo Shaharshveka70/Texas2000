@@ -21,7 +21,7 @@ function customerRouter({ db, provider }) {
 
   r.param('token', (req, res, next, token) => {
     const table = db.prepare(`
-      SELECT t.id, t.label, t.restaurant_id, r.name AS restaurant, r.ordering_enabled
+      SELECT t.id, t.label, t.restaurant_id, r.name AS restaurant, r.ordering_enabled, r.require_contact
       FROM tables t JOIN restaurants r ON r.id = t.restaurant_id WHERE t.token = ?`).get(token);
     if (!table) return res.status(404).json({ error: 'table_not_found' });
     req.table = table;
@@ -38,10 +38,21 @@ function customerRouter({ db, provider }) {
 
   // Public: just enough to render the welcome screen.
   r.get('/:token/info', (req, res) => {
-    res.json({ restaurant: req.table.restaurant, table: req.table.label, orderingEnabled: !!req.table.ordering_enabled });
+    res.json({ restaurant: req.table.restaurant, table: req.table.label, orderingEnabled: !!req.table.ordering_enabled,
+      requireContact: !!req.table.require_contact });
   });
 
   r.post('/:token/join', (req, res) => {
+    if (!req.table.require_contact) {
+      // Anonymous mode: no personal details. Diners get a numbered label so the bill can tell them apart.
+      const { n } = db.prepare('SELECT COUNT(*) AS n FROM guests WHERE table_id = ? AND ended_at IS NULL AND created_at > ?')
+        .get(req.table.id, Date.now() - GUEST_TTL_MS);
+      const label = `אורח/ת ${n + 1}`;
+      const token = newToken(18);
+      db.prepare(`INSERT INTO guests (table_id, name, phone, token, created_at, privacy_version, marketing_consent)
+        VALUES (?, ?, '', ?, ?, ?, 0)`).run(req.table.id, label, token, Date.now(), POLICY_VERSION);
+      return res.status(201).json({ guestToken: token, name: label });
+    }
     const name = String(req.body?.name || '').trim().replace(/\s+/g, ' ');
     const phone = normalizePhone(req.body?.phone);
     if (name.length < 2 || name.length > 40) return res.status(400).json({ error: 'invalid_name' });
