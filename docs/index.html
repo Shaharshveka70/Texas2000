@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Texas2000 למסעדות</title>
+<meta name="description" content="לקוחות סורקים ברקוד בשולחן, מזמינים ומשלמים עם טיפ, בלי לחכות למלצר. הצוות מנהל הכול ממסך אחד.">
+<meta name="theme-color" content="#0f7b5f">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Texas2000 · סורקים, מזמינים, משלמים והולכים">
+<meta property="og:description" content="מערכת למסעדות ובתי קפה: ברקוד בשולחן, הזמנה מהטלפון, תשלום וטיפ, בלי לחכות למלצר.">
+<meta property="og:image" content="https://shaharshveka70.github.io/Texas2000/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://shaharshveka70.github.io/Texas2000/">
+<meta name="twitter:card" content="summary_large_image">
+<style>html{-webkit-text-size-adjust:100%} body{margin:0} :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Heebo:wght@400;500;700&display=swap">
+<style>
+  /* Layout: product walkthrough. Hero with the real dashboard + phone, then the diner's
+     path as a phone strip, the staff screens in browser frames, and a plain status ledger. */
+  :root {
+    --bg: #f3f5f2;
+    --surface: #ffffff;
+    --ink: #17201c;
+    --muted: #5d6b64;
+    --line: #dde3de;
+    --brand: #0f7b5f;
+    --brand-ink: #ffffff;
+    --brand-soft: #e1f0ea;
+    --amber: #a8620a;
+    --amber-soft: #fbefdc;
+    --bezel: #1b2420;
+    --shadow: 0 1px 2px rgba(16, 40, 30, .06), 0 12px 32px rgba(16, 40, 30, .10);
+    --display: "Rubik", "Heebo", system-ui, sans-serif;
+    --body: "Heebo", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111614; --surface: #19201d; --ink: #edf2ef; --muted: #9fb0a8; --line: #2b3632;
+      --brand: #3cc296; --brand-ink: #0b1a14; --brand-soft: #18302a;
+      --amber: #f0b45a; --amber-soft: #33281a; --bezel: #050807;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111614; --surface: #19201d; --ink: #edf2ef; --muted: #9fb0a8; --line: #2b3632;
+    --brand: #3cc296; --brand-ink: #0b1a14; --brand-soft: #18302a;
+    --amber: #f0b45a; --amber-soft: #33281a; --bezel: #050807;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: var(--brand); }
+
+  /* Masthead */
+  .mast { display: flex; align-items: center; gap: 12px; padding-block: 22px 0; }
+  .mark { width: 40px; height: 40px; border-radius: 11px; background: var(--brand); color: var(--brand-ink);
+    display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 1.15rem; }
+  .mast b { font-family: var(--display); font-size: 1.1rem; }
+  .tag { margin-inline-start: auto; font-size: .82rem; color: var(--amber); background: var(--amber-soft);
+    padding: 4px 12px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 48px; align-items: center; padding-block: 48px 64px; }
+  .hero h1 { font-size: clamp(2.2rem, 5.2vw, 3.6rem); font-weight: 800; letter-spacing: -.01em; }
+  .hero h1 em { font-style: normal; color: var(--brand); }
+  .lede { font-size: 1.15rem; color: var(--muted); margin-top: 18px; max-width: 34em; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .facts span { font-size: .88rem; border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 999px; }
+  .stage { position: relative; padding-bottom: 48px; padding-inline-start: 0; }
+  .stage .browser { margin-inline-end: 70px; }
+  .stage .phone { position: absolute; left: 0; bottom: 0; width: 34%; max-width: 200px; }
+
+  /* Device frames */
+  .browser { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .browser .bar { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: .78rem; color: var(--muted); }
+  .browser .bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); display: inline-block; }
+  .browser .bar .url { margin-inline-start: 8px; direction: ltr; font-variant-numeric: tabular-nums; }
+  .phone { background: var(--bezel); border-radius: 30px; padding: 8px; box-shadow: var(--shadow); }
+  .phone img { border-radius: 23px; }
+
+  /* Sections */
+  section { padding-block: 56px; border-top: 1px solid var(--line); }
+  .head { display: grid; gap: 10px; max-width: 46em; margin-bottom: 32px; }
+  .eyebrow { font-size: .8rem; letter-spacing: .06em; color: var(--brand); font-weight: 700; }
+  .head h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 700; }
+  .head p { color: var(--muted); }
+
+  /* Diner path */
+  .path { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; list-style: none; padding: 0; margin: 0; }
+  .path li { display: grid; gap: 14px; align-content: start; }
+  .path .phone { max-width: 260px; width: 100%; justify-self: center; }
+  .step { display: flex; gap: 12px; align-items: baseline; }
+  .step .n { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+    display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: .9rem; }
+  .step h3 { font-size: 1.05rem; font-weight: 700; }
+  .step p { color: var(--muted); font-size: .95rem; margin-top: 2px; }
+
+  /* Staff */
+  .staff { display: grid; gap: 40px; }
+  .shot { display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+  .shot .copy h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+  .shot .copy p { color: var(--muted); }
+  .shot .copy ul { margin: 12px 0 0; padding-inline-start: 20px; color: var(--muted); }
+  .shot .copy li + li { margin-top: 4px; }
+
+  /* Feature list */
+  .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px; }
+  .features h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+  .features p { color: var(--muted); font-size: .95rem; }
+
+  /* Status ledger */
+  .ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .col { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; }
+  .col h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; display: flex; gap: 10px; align-items: center; }
+  .pill { font-family: var(--body); font-size: .75rem; font-weight: 500; padding: 2px 10px; border-radius: 999px; }
+  .pill.ok { background: var(--brand-soft); color: var(--brand); }
+  .pill.todo { background: var(--amber-soft); color: var(--amber); }
+  .col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .col li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+  .col li::before { content: "✓"; color: var(--brand); font-weight: 700; }
+  .col.todo li::before { content: "○"; color: var(--amber); }
+  .col li span { color: var(--muted); font-size: .92rem; display: block; }
+
+  footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--muted); font-size: .88rem; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 36px; padding-block: 32px 48px; }
+    .shot { grid-template-columns: 1fr; gap: 18px; }
+    .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .path { display: flex; overflow-x: auto; gap: 20px; scroll-snap-type: x mandatory; padding-bottom: 12px;
+      margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+    .path li { flex: 0 0 72%; scroll-snap-align: center; }
+    .ledger, .features { grid-template-columns: 1fr; }
+    .stage .browser { margin-inline-end: 40px; }
+    .swipe { display: block !important; }
+  }
+  .swipe { display: none; color: var(--muted); font-size: .85rem; margin-top: -18px; margin-bottom: 14px; }
+  @media (prefers-reduced-motion: no-preference) { .path { scroll-behavior: smooth; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mark" aria-hidden="true">T</div>
+    <b>Texas2000</b>
+    <span class="tag">גרסת הדגמה · נובמבר 2026</span>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>סורקים, מזמינים, <em>משלמים והולכים.</em></h1>
+      <p class="lede">מערכת לבתי קפה ומסעדות. לכל שולחן יש ברקוד: הלקוח רואה את התפריט, שולח הזמנה שהצוות מאשר בלחיצה, ובסוף משלם את החלק שלו ומשאיר טיפ. הכול מהטלפון, בלי להוריד אפליקציה ובלי לחכות למלצר.</p>
+      <div class="facts">
+        <span>עובד מכל טלפון, בלי התקנה</span>
+        <span>20 שולחנות, ברקוד לכל אחד</span>
+        <span><bdi>Apple Pay</bdi> · <bdi>Google Pay</bdi> · <bdi>bit</bdi> · אשראי</span>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="browser">
+        <div class="bar"><i></i><i></i><i></i><span class="url">texas2000 / staff</span></div>
+        <img src="img/s1-tables.jpg" width="1920" height="1140" alt="מסך הצוות: מפת 20 השולחנות של קפה טקסס עם מצב כל שולחן">
+      </div>
+      <div class="phone"><img src="img/c2-menu.jpg" width="780" height="1560" alt="מסך הלקוח: התפריט עם סל הזמנה"></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="head">
+      <span class="eyebrow">הלקוח</span>
+      <h2>מהברקוד ועד התשלום, בשש לחיצות</h2>
+      <p>זה מה שהלקוח רואה אחרי שסרק את הברקוד בשולחן 3 של "קפה טקסס", מסעדת ההדגמה.</p>
+    </div>
+    <p class="swipe">החליקו לצדדים כדי לראות את כל השלבים ←</p>
+    <ol class="path">
+      <li>
+        <div class="phone"><img src="img/c1-join.jpg" width="780" height="1560" loading="lazy" alt="מסך כניסה: שם, טלפון ואישור מדיניות פרטיות"></div>
+        <div class="step"><span class="n">1</span><div><h3>מזדהים</h3><p>שם וטלפון נייד, ואישור מדיניות הפרטיות. בלי זה לא רואים את התפריט.</p></div></div>
+      </li>
+      <li>
+        <div class="phone"><img src="img/c2-menu.jpg" width="780" height="1560" loading="lazy" alt="תפריט לפי קטגוריות עם כפתורי הוספה"></div>
+        <div class="step"><span class="n">2</span><div><h3>בוחרים מהתפריט</h3><p>קטגוריות, תיאורים ומחירים. פריט שאזל מסומן ולא ניתן להזמנה.</p></div></div>
+      </li>
+      <li>
+        <div class="phone"><img src="img/c3-cart.jpg" width="780" height="1560" loading="lazy" alt="סל ההזמנה עם הערה לצוות"></div>
+        <div class="step"><span class="n">3</span><div><h3>שולחים הזמנה</h3><p>אפשר להוסיף הערה, כמו "בלי פלפל חריף". ההזמנה עוברת לצוות לאישור.</p></div></div>
+      </li>
+      <li>
+        <div class="phone"><img src="img/c4-bill.jpg" width="780" height="1560" loading="lazy" alt="ההזמנה אושרה והחשבון מוצג"></div>
+        <div class="step"><span class="n">4</span><div><h3>הצוות מאשר</h3><p>הלקוח מקבל הודעה, וההזמנה נכנסת לחשבון של השולחן ומסומנת "שלי".</p></div></div>
+      </li>
+      <li>
+        <div class="phone"><img src="img/c5-pay.jpg" width="780" height="1560" loading="lazy" alt="מסך תשלום: רק מה שהזמנתי, טיפ ואמצעי תשלום"></div>
+        <div class="step"><span class="n">5</span><div><h3>משלמים את החלק שלהם</h3><p>רק מה שהזמנתי, חלוקה שווה, כל החשבון או סכום אחר. ועוד טיפ, ב-10%, 12%, 15% או כל סכום.</p></div></div>
+      </li>
+      <li>
+        <div class="phone"><img src="img/c6-paid.jpg" width="780" height="1560" loading="lazy" alt="אישור תשלום"></div>
+        <div class="step"><span class="n">6</span><div><h3>קמים והולכים</h3><p>אישור עם אסמכתא. הצוות רואה מיד שהשולחן שילם.</p></div></div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="head">
+      <span class="eyebrow">הצוות</span>
+      <h2>מסך אחד לכל המשמרת</h2>
+      <p>עובד על מחשב, טאבלט או טלפון של מלצר. מתעדכן לבד כל כמה שניות.</p>
+    </div>
+    <div class="staff">
+      <div class="shot">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span class="url">texas2000 / staff</span></div>
+          <img src="img/s1-tables.jpg" width="1920" height="1140" loading="lazy" alt="מפת שולחנות בצבעים"></div>
+        <div class="copy">
+          <h3>מפת השולחנות</h3>
+          <p>כל שולחן בצבע לפי המצב שלו, כך שבמבט אחד רואים מה דורש טיפול.</p>
+          <ul><li>פנוי, יושבים, חשבון פתוח</li><li>הזמנה שמחכה לאישור</li><li>שולם וצריך לשחרר את השולחן</li></ul>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span class="url">texas2000 / staff · הזמנות</span></div>
+          <img src="img/s2-orders.jpg" width="1920" height="1140" loading="lazy" alt="תור הזמנות לאישור"></div>
+        <div class="copy">
+          <h3>תור הזמנות</h3>
+          <p>הזמנה חדשה מגיעה עם צליל. רואים מי הזמין, מאיזה שולחן, מה ההערה, ומאשרים או דוחים בלחיצה.</p>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span class="url">texas2000 / staff · שולחן 8</span></div>
+          <img src="img/s3-drawer.jpg" width="1920" height="1140" loading="lazy" alt="פרטי שולחן: סועדים, חשבון ותשלומים"></div>
+        <div class="copy">
+          <h3>כל שולחן מקרוב</h3>
+          <p>מי יושב בשולחן ואיך ליצור איתו קשר, מה כל אחד הזמין, מי כבר שילם וכמה טיפ השאיר.</p>
+          <ul><li>הוספת פריט מהתפריט או פריט חופשי</li><li>סגירה ידנית אם שילמו במזומן</li><li>שחרור השולחן ללקוחות הבאים</li></ul>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span class="url">texas2000 / qr</span></div>
+          <img src="img/s4-qr.jpg" width="1920" height="1140" loading="lazy" alt="דף הדפסה עם ברקוד לכל שולחן"></div>
+        <div class="copy">
+          <h3>ברקודים מוכנים להדפסה</h3>
+          <p>כל מסעדה שנרשמת מקבלת ברקוד ייחודי לכל שולחן, בדף אחד להדפסה ולגזירה.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <span class="eyebrow">מאחורי הקלעים</span>
+      <h2>עוד דברים שכבר עובדים</h2>
+    </div>
+    <div class="features">
+      <div><h3>הרשמה למסעדות</h3><p>כל מסעדה פותחת חשבון עם שם משתמש וסיסמה ורואה רק את הנתונים שלה.</p></div>
+      <div><h3>ניהול תפריט</h3><p>הוספה, עריכה ומחיקה של פריטים, וסימון "אזל" שמונע הזמנה של אותו פריט.</p></div>
+      <div><h3>רק לראות ולשלם</h3><p>מקום שלא רוצה הזמנות דרך האפליקציה מכבה אותן, והלקוחות רק רואים את החשבון ומשלמים.</p></div>
+      <div><h3>כמה סועדים, חשבון אחד</h3><p>כמה אנשים משלמים במקביל, והיתרה מתעדכנת לכולם. אי אפשר לשלם יותר ממה שנשאר.</p></div>
+      <div><h3>פרטיות לפי החוק</h3><p>מדיניות פרטיות, הסכמה נפרדת לדיוור, מחיקה אוטומטית אחרי 12 חודשים, ומחיקה לפי בקשת לקוח.</p></div>
+      <div><h3>מסעדת הדגמה</h3><p>"קפה טקסס" עם 20 שולחנות ומשמרת פעילה, וכפתור שמאפס אותה לפני כל פגישה.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <span class="eyebrow">איפה זה עומד</span>
+      <h2>מה מוכן, ומה נשאר לפני מסעדה ראשונה</h2>
+    </div>
+    <div class="ledger">
+      <div class="col">
+        <h3>מוכן ועובד <span class="pill ok">נבדק</span></h3>
+        <ul>
+          <li><div>כל התהליך של הלקוח<span>ברקוד, הזדהות, הזמנה, אישור, תשלום וטיפ</span></div></li>
+          <li><div>מסך צוות מלא<span>שולחנות, הזמנות, תפריט, הגדרות וברקודים</span></div></li>
+          <li><div>הרשמה וכניסה למסעדות<span>כל מסעדה מופרדת מהאחרות</span></div></li>
+          <li><div>מדיניות פרטיות והסכמות<span>כולל מחיקה אוטומטית וטיפול בבקשות</span></div></li>
+          <li><div>בדיקות אוטומטיות<span>18 בדיקות על כל התהליכים המרכזיים</span></div></li>
+        </ul>
+      </div>
+      <div class="col todo">
+        <h3>הצעדים הבאים <span class="pill todo">לפני השקה</span></h3>
+        <ul>
+          <li><div>סליקה אמיתית<span>כרגע התשלומים מדומים. צריך לבחור ספק סליקה ישראלי ולחבר אותו</span></div></li>
+          <li><div>העלאה לאינטרנט<span>כתובת קבועה, כדי שהברקודים יעבדו מכל טלפון</span></div></li>
+          <li><div>בדיקה משפטית<span>מדיניות הפרטיות, תנאי שימוש והסכם עם המסעדות</span></div></li>
+          <li><div>אימות טלפון ב-SMS<span>כדי לוודא שהמספר באמת של הלקוח</span></div></li>
+          <li><div>חיבור לקופה<span>למקומות שעובדים עם Tabit, Beecomm וכו׳</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    כל התמונות צולמו מתוך המערכת עצמה. "קפה טקסס" היא מסעדה מומצאת להדגמה, והתשלומים בה מדומים: לא מתבצע חיוב אמיתי.
+  </footer>
+</div>
+
+</body>
+</html>
