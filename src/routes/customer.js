@@ -4,6 +4,7 @@ const express = require('express');
 const { newToken, tx } = require('../db');
 const { METHODS } = require('../payments');
 const { currentBill, billSummary, orderWithItems } = require('../bills');
+const { POLICY_VERSION } = require('../privacy');
 
 const GUEST_TTL_MS = 12 * 3600e3;
 const MAX_TIP_RATIO = 1; // a tip above 100% of the amount is almost certainly a typo
@@ -45,9 +46,12 @@ function customerRouter({ db, provider }) {
     const phone = normalizePhone(req.body?.phone);
     if (name.length < 2 || name.length > 40) return res.status(400).json({ error: 'invalid_name' });
     if (!phone) return res.status(400).json({ error: 'invalid_phone' });
+    // Informed consent to the privacy policy is required; marketing is a separate, optional opt-in.
+    if (req.body?.acceptPrivacy !== true) return res.status(400).json({ error: 'privacy_required' });
+    const marketing = req.body?.marketing === true ? 1 : 0;
     const token = newToken(18);
-    db.prepare('INSERT INTO guests (table_id, name, phone, token, created_at) VALUES (?, ?, ?, ?, ?)')
-      .run(req.table.id, name, phone, token, Date.now());
+    db.prepare(`INSERT INTO guests (table_id, name, phone, token, created_at, privacy_version, marketing_consent)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`).run(req.table.id, name, phone, token, Date.now(), POLICY_VERSION, marketing);
     res.status(201).json({ guestToken: token, name });
   });
 

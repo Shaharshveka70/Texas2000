@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 function newToken(bytes = 9) {
   return crypto.randomBytes(bytes).toString('base64url');
@@ -52,8 +52,12 @@ const SCHEMA = `
     phone TEXT NOT NULL,
     token TEXT NOT NULL UNIQUE,
     created_at INTEGER NOT NULL,
-    ended_at INTEGER -- set when staff release the table, so the next party starts fresh
+    ended_at INTEGER, -- set when staff release the table, so the next party starts fresh
+    privacy_version TEXT,                          -- privacy policy version the diner accepted
+    marketing_consent INTEGER NOT NULL DEFAULT 0,  -- separate opt-in for marketing messages
+    anonymized_at INTEGER                          -- personal details erased (retention / request)
   );
+  CREATE INDEX idx_guests_phone ON guests(phone);
   CREATE TABLE bills (
     id INTEGER PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
@@ -109,7 +113,17 @@ function openDb(file) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec('PRAGMA foreign_keys = ON;');
-  const { user_version: version } = db.prepare('PRAGMA user_version').get();
+  let { user_version: version } = db.prepare('PRAGMA user_version').get();
+  if (version === 2) {
+    // v2 → v3: privacy consent and anonymization fields on guests.
+    db.exec(`
+      ALTER TABLE guests ADD COLUMN privacy_version TEXT;
+      ALTER TABLE guests ADD COLUMN marketing_consent INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE guests ADD COLUMN anonymized_at INTEGER;
+      CREATE INDEX IF NOT EXISTS idx_guests_phone ON guests(phone);
+      PRAGMA user_version = 3;`);
+    version = 3;
+  }
   if (version !== SCHEMA_VERSION) {
     const existing = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all();
     if (existing.length) {

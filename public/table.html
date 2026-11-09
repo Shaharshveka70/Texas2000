@@ -26,9 +26,16 @@
       <input id="name" autocomplete="given-name" maxlength="40" required>
       <label for="phone">טלפון נייד</label>
       <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="050-1234567" required dir="ltr" style="text-align:right">
+      <p class="muted small" style="margin:10px 0 0">
+        הפרטים נמסרים ל<span class="placeName">בית העסק</span> לצורך ההזמנה, החשבון והתשלום, ונמחקים אוטומטית אחרי <span id="retentionTxt">12 חודשים</span>.
+        אין חובה חוקית למסור אותם, אבל בלי זה אי אפשר להזמין ולשלם דרך האפליקציה (תמיד אפשר מול הצוות).
+      </p>
+      <label class="switch consent"><input type="checkbox" id="acceptPrivacy" required>
+        <span>קראתי ואני מסכים/ה ל<a href="/privacy" target="_blank">מדיניות הפרטיות</a></span></label>
+      <label class="switch consent"><input type="checkbox" id="marketing">
+        <span>אשמח לקבל מ<span class="placeName">בית העסק</span> עדכונים ומבצעים ב-SMS <span class="muted">(לא חובה, אפשר לבטל בכל עת)</span></span></label>
       <p class="error hidden" id="joinError" role="alert"></p>
       <p style="margin:16px 0 0"><button class="btn" type="submit">המשך</button></p>
-      <p class="muted small" style="margin:10px 0 0">הפרטים נמסרים למקום לצורך ההזמנה והתשלום בלבד.</p>
     </form>
   </section>
 

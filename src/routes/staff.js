@@ -3,7 +3,8 @@ const express = require('express');
 const { tx, addTables } = require('../db');
 const { hashPassword, verifyPassword } = require('../auth');
 const { currentBill, billSummary, ensureOpenBill, addBillItem, approveOrder, orderWithItems } = require('../bills');
-const { GUEST_TTL_MS } = require('./customer');
+const { GUEST_TTL_MS, normalizePhone } = require('./customer');
+const { lookupByPhone, eraseByPhone } = require('../privacy');
 const { resetDemoActivity, DEMO_USERNAME } = require('../seed');
 
 const MAX_TABLES = 200;
@@ -61,7 +62,7 @@ function staffRouter({ db }) {
     const table = ownTable(req, req.params.id);
     if (!table) return res.status(404).json({ error: 'table_not_found' });
     const guests = db.prepare(`
-      SELECT id, name, phone, created_at FROM guests
+      SELECT id, name, phone, created_at, marketing_consent FROM guests
       WHERE table_id = ? AND created_at > ? AND ended_at IS NULL ORDER BY id`).all(table.id, Date.now() - GUEST_TTL_MS);
     const orders = db.prepare(`
       SELECT o.*, g.name AS guest_name FROM orders o LEFT JOIN guests g ON g.id = o.guest_id
@@ -244,6 +245,20 @@ function staffRouter({ db }) {
     if (typeof next !== 'string' || next.length < 8) return res.status(400).json({ error: 'weak_password' });
     db.prepare('UPDATE restaurants SET password_hash = ? WHERE id = ?').run(hashPassword(next), req.restaurant.id);
     res.json({ ok: true });
+  });
+
+  // ---------- Privacy requests (right to review / erase) ----------
+
+  r.post('/privacy/lookup', (req, res) => {
+    const phone = normalizePhone(req.body?.phone);
+    if (!phone) return res.status(400).json({ error: 'invalid_phone' });
+    res.json({ phone, visits: lookupByPhone(db, req.restaurant.id, phone) });
+  });
+
+  r.post('/privacy/erase', (req, res) => {
+    const phone = normalizePhone(req.body?.phone);
+    if (!phone) return res.status(400).json({ error: 'invalid_phone' });
+    res.json({ erased: eraseByPhone(db, req.restaurant.id, phone) });
   });
 
   // Demo account only: wipe activity and reload the sample scenario before a sales demo.

@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap');
+/* Font is served from our own server (no third-party requests that would expose diners' IPs). */
+@import url('/vendor/heebo/400.css');
+@import url('/vendor/heebo/500.css');
+@import url('/vendor/heebo/700.css');
+@import url('/vendor/heebo/800.css');
 
 :root {
   --bg: #f5f3ee; --card: #ffffff; --ink: #1d1b16; --muted: #6b665c; --line: #e5e0d5;
@@ -61,7 +65,9 @@ label { display: block; font-size: .9rem; color: var(--muted); margin: 12px 0 4p
 .inline > .shrink { flex: 0 0 auto; }
 .error { color: var(--danger); margin: 8px 0 0; }
 .switch { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--ink); margin: 0; }
-.switch input { width: 20px; height: 20px; accent-color: var(--accent); }
+.switch input { width: 20px; height: 20px; accent-color: var(--accent); flex: 0 0 auto; }
+.switch.consent { align-items: flex-start; margin-top: 12px; font-size: .92rem; }
+.switch.consent input { margin-top: 2px; }
 
 /* Badges */
 .badge { display: inline-block; font-size: .78rem; font-weight: 500; padding: 2px 9px; border-radius: 999px;

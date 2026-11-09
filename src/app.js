@@ -8,7 +8,7 @@ const { staffRouter } = require('./routes/staff');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
-function createApp({ db, provider, publicUrl }) {
+function createApp({ db, provider, publicUrl, operator = {}, retentionMonths = 12 }) {
   const app = express();
   app.set('trust proxy', 1); // correct req.secure / req.ip behind a hosting proxy
   app.disable('x-powered-by');
@@ -30,7 +30,19 @@ function createApp({ db, provider, publicUrl }) {
     res.set('Cache-Control', 'public, max-age=86400').type('png').send(png);
   });
 
+  // Details shown in the privacy policy (who operates the service, how to reach them).
+  app.get('/api/legal', (req, res) => {
+    res.json({
+      operatorName: operator.name || null,
+      operatorEmail: operator.email || null,
+      operatorAddress: operator.address || null,
+      retentionMonths,
+      policyVersion: require('./privacy').POLICY_VERSION,
+    });
+  });
+
   app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));
+  app.use('/vendor/heebo', express.static(path.dirname(require.resolve('@fontsource/heebo/400.css')), { maxAge: '30d' }));
 
   app.use('/api/auth', authRouter({ db }));
   app.use('/api/t', customerRouter({ db, provider }));

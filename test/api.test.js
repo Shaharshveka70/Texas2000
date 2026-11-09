@@ -5,6 +5,7 @@ const { seedDemo } = require('../src/seed');
 const { mockProvider } = require('../src/payments');
 const { createApp } = require('../src/app');
 const { normalizePhone } = require('../src/routes/customer');
+const { purgeExpired, POLICY_VERSION } = require('../src/privacy');
 
 let server, base, db;
 
@@ -48,9 +49,9 @@ async function staffLogin(username = 'demo', password = 'demo1234') {
   return c;
 }
 
-async function joinTable(token, name = 'שירה', phone = '052-555-1234') {
+async function joinTable(token, name = 'שירה', phone = '052-555-1234', extra = {}) {
   const c = client();
-  const r = await c.post(`/api/t/${token}/join`, { name, phone });
+  const r = await c.post(`/api/t/${token}/join`, { name, phone, acceptPrivacy: true, ...extra });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   c.setGuest(r.data.guestToken);
   return c;
@@ -115,8 +116,8 @@ describe('diner flow', () => {
     const t = tableToken(3);
     assert.equal((await client().get(`/api/t/${t}/info`)).status, 200);
     assert.equal((await client().get(`/api/t/${t}/menu`)).status, 401);
-    assert.equal((await client().post(`/api/t/${t}/join`, { name: 'א', phone: '0525551234' })).status, 400);
-    assert.equal((await client().post(`/api/t/${t}/join`, { name: 'שירה', phone: '12345' })).status, 400);
+    assert.equal((await client().post(`/api/t/${t}/join`, { name: 'א', phone: '0525551234', acceptPrivacy: true })).status, 400);
+    assert.equal((await client().post(`/api/t/${t}/join`, { name: 'שירה', phone: '12345', acceptPrivacy: true })).status, 400);
     const g = await joinTable(t);
     const menu = await g.get(`/api/t/${t}/menu`);
     assert.equal(menu.status, 200);
@@ -222,6 +223,62 @@ describe('diner flow', () => {
     await staff.patch('/api/staff/settings', { orderingEnabled: false });
     assert.equal((await g.post(`/api/t/${t}/orders`, { items: [{ menuItemId: item.id, quantity: 1 }] })).status, 403);
     await staff.patch('/api/staff/settings', { orderingEnabled: true });
+  });
+});
+
+describe('privacy', () => {
+  test('joining requires accepting the privacy policy; marketing is a separate opt-in', async () => {
+    const t = tableToken(12);
+    const noConsent = await client().post(`/api/t/${t}/join`, { name: 'נטע', phone: '0547770001' });
+    assert.equal(noConsent.status, 400);
+    assert.equal(noConsent.data.error, 'privacy_required');
+
+    await joinTable(t, 'נטע', '0547770001');
+    await joinTable(t, 'עומר', '0547770002', { marketing: true });
+    const rows = db.prepare("SELECT phone, privacy_version, marketing_consent FROM guests WHERE phone IN ('0547770001','0547770002') ORDER BY phone").all();
+    assert.deepEqual(rows.map((r) => [r.privacy_version, r.marketing_consent]), [[POLICY_VERSION, 0], [POLICY_VERSION, 1]]);
+  });
+
+  test('staff can look up and erase a diner by phone, only within their restaurant', async () => {
+    const t = tableToken(13);
+    const g = await joinTable(t, 'ליאור', '0548880001', { marketing: true });
+    const { data: menu } = await g.get(`/api/t/${t}/menu`);
+    await g.post(`/api/t/${t}/orders`, { items: [{ menuItemId: menu.categories[0].items[0].id, quantity: 1 }], note: 'אלרגיה לאגוזים' });
+
+    const other = client();
+    await other.post('/api/auth/signup', { restaurantName: 'מקום אחר', username: 'othercafe', password: 'secret123' });
+    assert.equal((await other.post('/api/staff/privacy/lookup', { phone: '0548880001' })).data.visits.length, 0);
+    assert.equal((await other.post('/api/staff/privacy/erase', { phone: '0548880001' })).data.erased, 0);
+
+    const staff = await staffLogin();
+    const found = await staff.post('/api/staff/privacy/lookup', { phone: '054-888-0001' });
+    assert.equal(found.data.visits.length, 1);
+    assert.equal(found.data.visits[0].name, 'ליאור');
+    assert.equal((await staff.post('/api/staff/privacy/erase', { phone: '0548880001' })).data.erased, 1);
+    assert.equal((await staff.post('/api/staff/privacy/lookup', { phone: '0548880001' })).data.visits.length, 0);
+
+    const row = db.prepare("SELECT g.name, g.phone, g.marketing_consent, g.anonymized_at, o.note FROM guests g JOIN orders o ON o.guest_id = g.id WHERE g.id = (SELECT MAX(id) FROM guests WHERE anonymized_at IS NOT NULL)").get();
+    assert.equal(row.phone, '');
+    assert.equal(row.marketing_consent, 0);
+    assert.equal(row.note, '');
+    assert.notEqual(row.name, 'ליאור');
+  });
+
+  test('retention job anonymizes visits older than the retention period', async () => {
+    await joinTable(tableToken(14), 'ותיק', '0549990001');
+    const old = Date.now() - 400 * 86400e3;
+    db.prepare("UPDATE guests SET created_at = ? WHERE phone = '0549990001'").run(old);
+    assert.ok(purgeExpired(db, 12) >= 1);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM guests WHERE phone = '0549990001'").get().n, 0);
+    // Recent diners are untouched.
+    assert.ok(db.prepare("SELECT COUNT(*) AS n FROM guests WHERE phone = '0501234567'").get().n >= 1);
+  });
+
+  test('privacy page and operator details are served', async () => {
+    assert.equal((await fetch(`${base}/privacy`)).status, 200);
+    const legal = await fetch(`${base}/api/legal`).then((r) => r.json());
+    assert.equal(legal.policyVersion, POLICY_VERSION);
+    assert.equal((await fetch(`${base}/vendor/heebo/400.css`)).status, 200);
   });
 });
 

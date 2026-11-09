@@ -143,7 +143,8 @@ async function openTable(id, silent = false) {
 
     <div class="card">
       <h2>סועדים בשולחן</h2>
-      ${d.guests.length ? d.guests.map((g) => `<div class="row"><span>${esc(g.name)}</span>
+      ${d.guests.length ? d.guests.map((g) => `<div class="row"><span>${esc(g.name)}
+        ${g.marketing_consent ? '<span class="badge ok" title="הסכים/ה לקבל הודעות שיווקיות">מאשר/ת דיוור</span>' : ''}</span>
         <a href="tel:${esc(g.phone)}" dir="ltr" class="small">${esc(g.phone)}</a></div>`).join('')
         : '<div class="muted">אף אחד לא סרק עדיין</div>'}
     </div>
@@ -307,6 +308,30 @@ $('changePass').addEventListener('click', async () => {
   await api('/password', { method: 'POST', body: { current: $('curPass').value, next: $('newPass').value } });
   $('curPass').value = ''; $('newPass').value = '';
   toast('הסיסמה עודכנה');
+});
+
+async function privacyLookup() {
+  const { phone, visits } = await api('/privacy/lookup', { method: 'POST', body: { phone: $('privPhone').value } });
+  if (!visits.length) {
+    $('privResult').innerHTML = '<div class="muted">אין מידע שמור על המספר הזה.</div>';
+    return;
+  }
+  $('privResult').innerHTML = `
+    <div class="muted small" style="margin-bottom:6px">${visits.length === 1 ? 'נמצא ביקור אחד' : `נמצאו ${visits.length} ביקורים`} עבור <span dir="ltr">${esc(phone)}</span>:</div>
+    ${visits.map((v) => `<div class="row small"><span>${new Date(v.created_at).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' })}
+      · ${esc(v.table_label)} · ${esc(v.name)}${v.marketing_consent ? ' · מאשר/ת דיוור' : ''}</span>
+      <span class="money">${v.orders} הזמנות · ${fmt(v.paid)}</span></div>`).join('')}
+    <p style="margin:12px 0 0"><button class="btn small danger" id="privErase" data-phone="${esc(phone)}">מחיקת הפרטים האישיים</button></p>
+    <p class="muted small" style="margin:6px 0 0">השם, הטלפון וההערות יימחקו, וכך גם ההסכמה לדיוור. סכומי ההזמנות והתשלומים יישארו לצורכי הנהלת חשבונות, בלי פרטים מזהים.</p>`;
+}
+$('privLookup').addEventListener('click', privacyLookup);
+$('privPhone').addEventListener('keydown', (e) => { if (e.key === 'Enter') privacyLookup(); });
+$('privResult').addEventListener('click', async (e) => {
+  const b = e.target.closest('#privErase');
+  if (!b || !confirm('למחוק לצמיתות את הפרטים האישיים של הלקוח? אי אפשר לבטל את הפעולה.')) return;
+  const { erased } = await api('/privacy/erase', { method: 'POST', body: { phone: b.dataset.phone } });
+  $('privResult').innerHTML = `<div class="badge ok">הפרטים נמחקו (${erased === 1 ? 'ביקור אחד' : `${erased} ביקורים`}) ✓</div>`;
+  refresh();
 });
 
 $('demoReset').addEventListener('click', async () => {

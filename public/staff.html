@@ -78,6 +78,14 @@
         <button class="btn small shrink" id="addTables">הוספת שולחנות</button></div>
     </div>
     <div class="card">
+      <h2>בקשות פרטיות של לקוחות</h2>
+      <p class="sub">לקוח ביקש לראות את המידע שנשמר עליו, או למחוק אותו? חפשו לפי מספר הטלפון.
+        (לפני המסירה ודאו שהמספר באמת שייך למבקש.) <a href="/privacy" target="_blank">מדיניות הפרטיות</a></p>
+      <div class="inline"><input id="privPhone" type="tel" placeholder="050-1234567" dir="ltr">
+        <button class="btn small shrink" id="privLookup">חיפוש</button></div>
+      <div id="privResult" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
       <h2>החלפת סיסמה</h2>
       <label for="curPass">סיסמה נוכחית</label><input id="curPass" type="password" autocomplete="current-password" dir="ltr">
       <label for="newPass">סיסמה חדשה</label><input id="newPass" type="password" autocomplete="new-password" dir="ltr">

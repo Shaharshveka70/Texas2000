@@ -35,6 +35,7 @@ const ORDER_STATUS = {
 
 const ERROR_TEXT = {
   invalid_name: 'נא להזין שם (לפחות 2 תווים).',
+  privacy_required: 'כדי להמשיך יש לאשר את מדיניות הפרטיות.',
   invalid_phone: 'מספר הטלפון לא תקין. נא להזין מספר נייד, למשל 050-1234567.',
   amount_exceeds_remaining: 'הסכום גבוה מהיתרה. מישהו אחר בשולחן כבר שילם חלק. עדכנו ונסו שוב.',
   bill_changed_during_payment: 'החשבון עודכן בזמן התשלום. החיוב בוטל, נסו שוב.',

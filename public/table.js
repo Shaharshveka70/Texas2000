@@ -60,6 +60,8 @@ async function boot() {
   $('tableLabel').textContent = state.info.table;
   $('logo').textContent = state.info.restaurant.trim().charAt(0) || '☕';
   document.title = `${state.info.restaurant} · ${state.info.table}`;
+  fetch('/api/legal').then((r) => r.json()).then((l) => { $('retentionTxt').textContent = `${l.retentionMonths} חודשים`; }).catch(() => {});
+  document.querySelectorAll('.placeName').forEach((el) => { el.textContent = state.info.restaurant; });
   if (state.guestToken && await enterApp()) return;
   showJoin();
 }
@@ -67,9 +69,15 @@ async function boot() {
 $('joinForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('joinError').classList.add('hidden');
+  if (!$('acceptPrivacy').checked) {
+    $('joinError').textContent = errorText('privacy_required');
+    $('joinError').classList.remove('hidden');
+    return;
+  }
   const res = await fetch(`/api/t/${encodeURIComponent(tableToken)}/join`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: $('name').value, phone: $('phone').value }),
+    body: JSON.stringify({ name: $('name').value, phone: $('phone').value,
+      acceptPrivacy: $('acceptPrivacy').checked, marketing: $('marketing').checked }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

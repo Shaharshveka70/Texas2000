@@ -2,6 +2,7 @@
 const { newToken, tx, addTables } = require('./db');
 const { hashPassword } = require('./auth');
 const { ensureOpenBill, addBillItem } = require('./bills');
+const { POLICY_VERSION } = require('./privacy');
 
 const DEMO_USERNAME = 'demo';
 const DEMO_NAME = 'קפה טקסס';
@@ -57,9 +58,9 @@ function resetDemoActivity(db, restaurantId) {
     const menu = Object.fromEntries(db.prepare('SELECT name, id, price FROM menu_items WHERE restaurant_id = ? AND deleted = 0')
       .all(restaurantId).map((m) => [m.name, m]));
     const now = Date.now();
-    const guest = (tid, name, phone, minsAgo) => Number(db.prepare(
-      'INSERT INTO guests (table_id, name, phone, token, created_at) VALUES (?, ?, ?, ?, ?)')
-      .run(tid, name, phone, newToken(18), now - minsAgo * 60e3).lastInsertRowid);
+    const guest = (tid, name, phone, minsAgo, marketing = 0) => Number(db.prepare(
+      'INSERT INTO guests (table_id, name, phone, token, created_at, privacy_version, marketing_consent) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(tid, name, phone, newToken(18), now - minsAgo * 60e3, POLICY_VERSION, marketing).lastInsertRowid);
     const order = (tid, gid, lines, { status, minsAgo, note = '' }) => {
       const oid = Number(db.prepare('INSERT INTO orders (table_id, guest_id, status, note, created_at, decided_at) VALUES (?, ?, ?, ?, ?, ?)')
         .run(tid, gid, status, note, now - minsAgo * 60e3, status === 'pending' ? null : now - (minsAgo - 1) * 60e3).lastInsertRowid);
@@ -78,7 +79,7 @@ function resetDemoActivity(db, restaurantId) {
     const [t1, t2, , , t5, , , t8, , , t11] = tableIds;
 
     // Table 2: two friends eating, bill open.
-    const dana = guest(t2, 'דנה', '0501234567', 40);
+    const dana = guest(t2, 'דנה', '0501234567', 40, 1);
     const noam = guest(t2, 'נועם', '0527654321', 38);
     order(t2, dana, [['ארוחת בוקר ישראלית', 1], ['קפוצ׳ינו', 1]], { status: 'approved', minsAgo: 35 });
     order(t2, noam, [['שקשוקה', 1], ['לימונדה', 1]], { status: 'approved', minsAgo: 34 });
@@ -88,7 +89,7 @@ function resetDemoActivity(db, restaurantId) {
     order(t5, michal, [['קפוצ׳ינו', 2], ['קרואסון חמאה', 2]], { status: 'pending', minsAgo: 1, note: 'אחד הקפוצ׳ינו על שיבולת שועל' });
 
     // Table 8: one diner already paid their part.
-    const ron = guest(t8, 'רון', '0509998877', 55);
+    const ron = guest(t8, 'רון', '0509998877', 55, 1);
     const yael = guest(t8, 'יעל', '0533334444', 54);
     const b8 = order(t8, ron, [['טוסט גבינות', 1], ['אייס קפה', 1]], { status: 'approved', minsAgo: 50 });
     order(t8, yael, [['סלט קינואה', 1], ['מיץ תפוזים סחוט', 1]], { status: 'approved', minsAgo: 49 });
